@@ -6,8 +6,9 @@
 #include "Engine2D/Audio/AudioManager.h"
 #include "Engine2D/Utils/ResourceManager.h"
 #include "Engine2D/Utils/Timer.h"
+#include "Engine2D/Utils/Logger.h"
+#include "Engine2D/Utils/Exception.h"
 #include <SDL.h>
-#include <iostream>
 
 namespace Engine2D {
 
@@ -29,44 +30,63 @@ Engine::~Engine() {
 }
 
 bool Engine::initialize(const std::string& title, int width, int height, bool fullscreen) {
-    // 初始化SDL
-    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_TIMER) < 0) {
-        std::cerr << "SDL初始化失败: " << SDL_GetError() << std::endl;
+    try {
+        // 初始化日志系统
+        Logger::getInstance().initialize("engine.log", LogLevel::INFO);
+        LOG_INFO("引擎初始化开始");
+        
+        // 初始化SDL
+        if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_TIMER) < 0) {
+            throw InitializationException("SDL初始化失败: " + std::string(SDL_GetError()));
+        }
+        LOG_INFO("SDL初始化成功");
+
+        // 创建并初始化子系统
+        m_renderer = std::make_unique<Renderer>();
+        if (!m_renderer->initialize(title, width, height, fullscreen)) {
+            throw InitializationException("渲染器初始化失败");
+        }
+        LOG_INFO("渲染器初始化成功");
+
+        m_inputManager = std::make_unique<InputManager>();
+        m_inputManager->initialize();
+        LOG_INFO("输入管理器初始化成功");
+
+        m_physicsWorld = std::make_unique<PhysicsWorld>();
+        m_physicsWorld->initialize();
+        LOG_INFO("物理世界初始化成功");
+
+        m_audioManager = std::make_unique<AudioManager>();
+        if (!m_audioManager->initialize()) {
+            LOG_WARN("音频系统初始化失败，继续执行");
+        } else {
+            LOG_INFO("音频管理器初始化成功");
+        }
+
+        m_resourceManager = std::make_unique<ResourceManager>();
+        m_resourceManager->initialize();
+        LOG_INFO("资源管理器初始化成功");
+
+        m_sceneManager = std::make_unique<SceneManager>();
+        m_sceneManager->initialize();
+        LOG_INFO("场景管理器初始化成功");
+
+        m_timer = std::make_unique<Timer>();
+        m_timer->initialize();
+        m_timer->setFrameRateCap(60); // 设置默认帧率上限为60FPS
+        m_timer->start();
+        LOG_INFO("定时器初始化成功");
+
+        m_running = true;
+        LOG_INFO("引擎初始化完成");
+        return true;
+    } catch (const EngineException& e) {
+        LOG_FATAL("引擎初始化失败: " + std::string(e.what()));
+        return false;
+    } catch (const std::exception& e) {
+        LOG_FATAL("未知错误: " + std::string(e.what()));
         return false;
     }
-
-    // 创建并初始化子系统
-    m_renderer = std::make_unique<Renderer>();
-    if (!m_renderer->initialize(title, width, height, fullscreen)) {
-        std::cerr << "渲染器初始化失败" << std::endl;
-        return false;
-    }
-
-    m_inputManager = std::make_unique<InputManager>();
-    m_inputManager->initialize();
-
-    m_physicsWorld = std::make_unique<PhysicsWorld>();
-    m_physicsWorld->initialize();
-
-    m_audioManager = std::make_unique<AudioManager>();
-    if (!m_audioManager->initialize()) {
-        std::cerr << "音频系统初始化失败" << std::endl;
-        // 音频失败不是致命错误，继续执行
-    }
-
-    m_resourceManager = std::make_unique<ResourceManager>();
-    m_resourceManager->initialize();
-
-    m_sceneManager = std::make_unique<SceneManager>();
-    m_sceneManager->initialize();
-
-    m_timer = std::make_unique<Timer>();
-    m_timer->initialize();
-    m_timer->setFrameRateCap(60); // 设置默认帧率上限为60FPS
-    m_timer->start();
-
-    m_running = true;
-    return true;
 }
 
 void Engine::run() {
@@ -92,18 +112,41 @@ void Engine::run() {
 }
 
 void Engine::shutdown() {
+    LOG_INFO("引擎关闭开始");
     m_running = false;
 
     // 按相反顺序关闭子系统
-    if (m_sceneManager) m_sceneManager->shutdown();
-    if (m_resourceManager) m_resourceManager->shutdown();
-    if (m_audioManager) m_audioManager->shutdown();
-    if (m_physicsWorld) m_physicsWorld->shutdown();
-    if (m_inputManager) m_inputManager->shutdown();
-    if (m_renderer) m_renderer->shutdown();
+    if (m_sceneManager) {
+        m_sceneManager->shutdown();
+        LOG_INFO("场景管理器已关闭");
+    }
+    if (m_resourceManager) {
+        m_resourceManager->shutdown();
+        LOG_INFO("资源管理器已关闭");
+    }
+    if (m_audioManager) {
+        m_audioManager->shutdown();
+        LOG_INFO("音频管理器已关闭");
+    }
+    if (m_physicsWorld) {
+        m_physicsWorld->shutdown();
+        LOG_INFO("物理世界已关闭");
+    }
+    if (m_inputManager) {
+        m_inputManager->shutdown();
+        LOG_INFO("输入管理器已关闭");
+    }
+    if (m_renderer) {
+        m_renderer->shutdown();
+        LOG_INFO("渲染器已关闭");
+    }
 
     // 退出SDL
     SDL_Quit();
+    LOG_INFO("SDL已退出");
+    
+    // 关闭日志系统
+    Logger::getInstance().shutdown();
 }
 
 void Engine::processEvents() {

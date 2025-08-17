@@ -1,52 +1,73 @@
-# Prerequisites
-*.d
+# 构建目录
+build/
+bin/
+lib/
+out/
 
-# Object files
+# CMake生成的文件
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+*.cmake
+
+# 编译输出
 *.o
-*.ko
 *.obj
-*.elf
-
-# Linker output
-*.ilk
-*.map
-*.exp
-
-# Precompiled Headers
-*.gch
-*.pch
-
-# Libraries
-*.lib
-*.a
-*.la
-*.lo
-
-# Shared objects (inc. Windows DLLs)
+*.exe
 *.dll
 *.so
-*.so.*
 *.dylib
+*.a
+*.lib
 
-# Executables
-*.exe
-*.out
-*.app
-*.i*86
-*.x86_64
-*.hex
+# IDE文件
+.vs/
+.vscode/
+*.vcxproj
+*.vcxproj.filters
+*.vcxproj.user
+*.sln
+*.suo
+*.user
+*.userosscache
+*.sdf
+*.opensdf
+*.VC.db
+*.VC.VC.opendb
 
-# Debug files
-*.dSYM/
-*.su
-*.idb
-*.pdb
+# 日志文件
+*.log
+logs/
 
-# Kernel Module Compile Results
-*.mod*
-*.cmd
-.tmp_versions/
-modules.order
-Module.symvers
-Mkfile.old
-dkms.conf
+# 配置文件（运行时生成）
+config.ini
+engine.log
+profile.txt
+
+# 临时文件
+*.tmp
+*.temp
+*~
+
+# 操作系统文件
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# 测试输出
+test_results/
+coverage/
+
+# 依赖目录
+third_party/
+external/
+
+# 文档生成
+docs/_build/
+docs/html/
+docs/latex/
+
+# 包管理器
+conan/
+vcpkg_installed/

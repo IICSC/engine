@@ -38,4 +38,10 @@ include_directories(
 add_subdirectory(Engine2D)
 
 # 创建示例应用
-add_subdirectory(Examples) 
+add_subdirectory(Examples)
+
+# 添加测试（可选）
+option(BUILD_TESTS "Build tests" OFF)
+if(BUILD_TESTS)
+    add_subdirectory(Tests)
+endif() 

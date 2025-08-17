@@ -20,6 +20,8 @@ set(ENGINE_SOURCES
     src/Utils/Timer.cpp
     src/Utils/ResourceManager.cpp
     src/Utils/Logger.cpp
+    src/Utils/Config.cpp
+    src/Utils/Profiler.cpp
 )
 
 set(ENGINE_HEADERS
@@ -44,6 +46,10 @@ set(ENGINE_HEADERS
     include/Engine2D/Utils/Timer.h
     include/Engine2D/Utils/ResourceManager.h
     include/Engine2D/Utils/Logger.h
+    include/Engine2D/Utils/Exception.h
+    include/Engine2D/Utils/SmartPtr.h
+    include/Engine2D/Utils/Config.h
+    include/Engine2D/Utils/Profiler.h
     include/Engine2D/Engine2D.h
 )
 
